@@ -1,4 +1,4 @@
-from fade_away_filter import __version__
+from eataway import __version__
 
 
 def test_version():
