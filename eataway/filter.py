@@ -11,10 +11,33 @@ Console script.
 from __future__ import absolute_import, division, print_function
 
 from glob import glob
-from typing import List
+from typing import List, Tuple, Union
 
 from PIL import Image as img
 from PIL.Image import Image
+
+#####################################################################
+# SCALE
+#####################################################################
+
+def scale_wrapping_image(
+        w1: int,
+        h1: int,
+        ratio: float=1.5) -> Tuple[int, int]:
+    """
+    Scale an image so that it wraps around the input image size.
+    Also square the wrapper image.
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    out: None.
+    """
+    return (
+        int(max(1., ratio) * max(w1, h1)),
+        int(max(1., ratio) * max(w1, h1)))
 
 #####################################################################
 # NOISE
