@@ -198,5 +198,41 @@ def apply_scan_filter(
 #####################################################################
 
 if __name__ == "__main__":
-    images = [img.open(__f) for __f in glob('/home/flatline/images/erotiques/random/*.jpg')[:10]]
-    merge_into_an_animation(images, '/home/flatline/test.gif')
+    with pil.open('/home/flatline/images/projects/2021-01_eat-away-filter/input/back.png').convert('LA').convert('RGBA') as __input:
+        with pil.open('/home/flatline/images/projects/2021-01_eat-away-filter/textures/squared/3.png').convert('LA').convert('RGBA') as __texture:
+
+            # globals
+            __input.thumbnail((768, 768), reducing_gap=3.0)
+            __wi, __hi = __input.size
+            __frames = [__input]
+
+            # resize the texture to 1.5 x input, so that it wraps the input
+            __texture = __texture.resize(scale_wrapping_image(
+                __wi,
+                __hi,
+                1.5))
+            __wt, __ht = __texture.size
+
+            # initiate
+            __current = __input
+            
+            # position the image inside the texture
+            __position = position_inside(
+                w1=__wi,
+                h1=__hi,
+                w2=__wt,
+                h2=__ht)
+
+            for i in range(30):
+                # filter the current iteration
+                __current = apply_scan_filter(
+                    image=__current,
+                    texture=__texture,
+                    position=__position,
+                    limit=8,
+                    opacity=0.8)
+
+                # save the current frame
+                __frames.append(__current)
+
+    merge_into_an_animation(__frames, '/home/flatline/test.gif')
