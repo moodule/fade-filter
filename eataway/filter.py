@@ -14,7 +14,10 @@ from glob import glob
 from random import randrange
 from typing import List, Tuple, Union
 
-from PIL import Image as img
+from blend_modes import difference
+import numpy as np
+from PIL import Image as pil
+from PIL import ImageFilter as fil
 from PIL.Image import Image
 
 #####################################################################
@@ -44,7 +47,7 @@ def scale_wrapping_image(
 # POSITION
 #####################################################################
 
-def position_randomly_inside(
+def position_inside(
         w1: int,
         h1: int,
         w2: int,
@@ -104,16 +107,14 @@ def move_around(
 # NOISE
 #####################################################################
 
-# so far, randomly spreading the texture does the job
+# so far, randomly move_arounding the texture does the job
 # could be combined with random flip & rotation
 
 #####################################################################
 # LAYERS BLENDING
 #####################################################################
 
-#####################################################################
-# FULL TRANSITION
-#####################################################################
+# so far, blend_modes does the job
 
 #####################################################################
 # INPUT
@@ -147,9 +148,50 @@ def merge_into_an_animation(
             format='GIF',
             append_images=__rest,
             save_all=True,
-            duration=40,
-            loop=0)
+            duration=100,
+            loop=0,
+            optimize=True)
 
+#####################################################################
+# FULL TRANSITION
+#####################################################################
+
+def apply_scan_filter(
+        image: Image,
+        texture: Image,
+        position: Tuple[int, int],
+        limit: int=10,
+        opacity: int=0.7) -> Image:
+    __x, __y = position
+    __wi, __hi = image.size
+    __wt, __ht = texture.size
+
+    # add a random move_around as noise
+    # to simulate the imperfect alignment of a picture in a scanner
+    __dx, __dy = move_around(
+        x=__x,
+        y=__y,
+        w1=__wi,
+        h1=__hi,
+        w2=__wt,
+        h2=__ht,
+        limit=limit) # don't move more than 10 pixels along each axis
+
+    # crop the texture to match the input image size
+    __mask = texture.crop((
+        __x + __dx,
+        __y + __dy,
+        __x + __dx + __wi,
+        __y + __dy + __hi))
+
+    # blend the mask and the input image
+    __filtered = pil.fromarray(np.uint8(difference(
+        np.array(image).astype(float),
+        np.array(__mask).astype(float),
+        opacity=opacity)))
+
+    # sharpen the result
+    return __filtered.filter(fil.SHARPEN)
 
 #####################################################################
 # MAIN
