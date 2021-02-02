@@ -32,13 +32,11 @@ def main():
     parser.add_argument(
         'input',
         type=str,
-        help='The path to the input image, which is the starting point of the video',
-        required=True)
+        help='The path to the input image, which is the starting point of the video')
     parser.add_argument(
         'texture',
         type=str,
-        help='The texture file, which will eventually replace the content',
-        required=True)
+        help='The texture file, which will eventually replace the content')
     parser.add_argument(
         '-b',
         '--blend',
