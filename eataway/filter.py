@@ -11,6 +11,7 @@ Console script.
 from __future__ import absolute_import, division, print_function
 
 from glob import glob
+from random import randrange
 from typing import List, Tuple, Union
 
 from PIL import Image as img
@@ -40,8 +41,71 @@ def scale_wrapping_image(
         int(max(1., ratio) * max(w1, h1)))
 
 #####################################################################
+# POSITION
+#####################################################################
+
+def position_randomly_inside(
+        w1: int,
+        h1: int,
+        w2: int,
+        h2: int) -> Union[None, Tuple[int, int]]:
+    """
+    Position an image randomly, while remaining entirely inside a
+    container image.
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    out: None.
+    """
+    if (w2 >= w1) and (h2 >= h1):
+        return (
+            randrange(0, 1 + w2 - w1),  # 0 if w2 == w1
+            randrange(0, 1 + h2 - h1))  # same
+    else:
+        return None
+
+def move_around(
+        x: int,
+        y: int,
+        w1: int,
+        h1: int,
+        w2: int,
+        h2: int,
+        limit: int=10) -> Union[None, Tuple[int, int]]:
+    """
+    Slightly move the smaller image around its position, inside
+    the larger image.
+
+    Actually the composition of 4 unidirectional movements, in
+    each margin space before and after the smaller image.
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    out: None.
+    """
+    if (w2 >= x + w1) and (h2 >= y + h1):
+        x_before = randrange(0, 1 + min(limit, x))
+        x_after = randrange(0, 1 + min(limit, w2 - w1 - x))
+        y_before = randrange(0, 1 + min(limit, y))
+        y_after = randrange(0, 1 + min(limit, h2 - h1 - y))
+        return (
+            x_after - x_before,
+            y_after - y_before)
+    else:
+        return None
+
+#####################################################################
 # NOISE
 #####################################################################
+
+# so far, randomly spreading the texture does the job
+# could be combined with random flip & rotation
 
 #####################################################################
 # LAYERS BLENDING
