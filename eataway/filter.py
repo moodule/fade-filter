@@ -126,7 +126,8 @@ def move_around(
 
 def merge_into_an_animation(
         images: List[Image],
-        path: str="./out.gif") -> None:
+        path: str="./out.gif",
+        duration: int=100) -> None:
     """
     Merge a list of images into a gif.
 
@@ -148,7 +149,7 @@ def merge_into_an_animation(
             format='GIF',
             append_images=__rest,
             save_all=True,
-            duration=100,
+            duration=duration,
             loop=0,
             optimize=True)
 
@@ -161,7 +162,19 @@ def apply_scan_filter(
         texture: Image,
         position: Tuple[int, int],
         limit: int=10,
-        opacity: int=0.7) -> Image:
+        opacity: float=0.7) -> Image:
+    """
+    Merge a list of images into a gif.
+
+    Parameters
+    ----------
+    image: Image.
+        A list of image objects, one for each frame.
+
+    Returns
+    -------
+    out: None.
+    """
     __x, __y = position
     __wi, __hi = image.size
     __wt, __ht = texture.size
@@ -194,6 +207,64 @@ def apply_scan_filter(
     return __filtered.filter(fil.SHARPEN)
 
 #####################################################################
+# GENERATE THE ANIMATION
+#####################################################################
+
+def eat_image_away(
+        image: Image,
+        texture: Image,
+        iterations: int=10,
+        size: Tuple[int, int]= (512, 512),
+        opacity: float=0.8,
+        noise: int=8,
+        sharpen: bool=True,
+        invert: bool=False,) -> List[Image]:
+    """
+    Wrapper function to generate the destruction animation from a
+    single image.
+
+    Parameters
+    ----------
+    image: Image.
+        A list of image objects, one for each frame.
+
+    Returns
+    -------
+    out: None.
+    """
+    # resize the input image, mosty for storage & processing opt.
+    image.thumbnail((768, 768), reducing_gap=3.0)
+
+    # globals
+    __wi, __hi = image.size
+    __frames = [image]
+
+    # resize the texture to 1.5 x input, so that it wraps the input
+    __texture = texture.resize(scale_wrapping_image(
+        __wi,
+        __hi,
+        1.5))
+    __wt, __ht = __texture.size
+    
+    # position the image inside the texture
+    __position = position_inside(
+        w1=__wi,
+        h1=__hi,
+        w2=__wt,
+        h2=__ht)
+
+    for i in range(iterations):
+        # filter the latest frame
+        __frames.append(apply_scan_filter(
+            image=__frames[-1],
+            texture=__texture,
+            position=__position,
+            limit=noise,
+            opacity=opacity))
+
+    return __frames
+
+#####################################################################
 # MAIN
 #####################################################################
 
@@ -201,38 +272,17 @@ if __name__ == "__main__":
     with pil.open('/home/flatline/images/projects/2021-01_eat-away-filter/input/back.png').convert('LA').convert('RGBA') as __input:
         with pil.open('/home/flatline/images/projects/2021-01_eat-away-filter/textures/squared/3.png').convert('LA').convert('RGBA') as __texture:
 
-            # globals
-            __input.thumbnail((768, 768), reducing_gap=3.0)
-            __wi, __hi = __input.size
-            __frames = [__input]
+            __frames = eat_image_away(
+                __input,
+                __texture,
+                iterations=30,
+                size=(768, 768),
+                opacity=1.0,
+                noise=4,
+                sharpen=False,
+                invert=False)
 
-            # resize the texture to 1.5 x input, so that it wraps the input
-            __texture = __texture.resize(scale_wrapping_image(
-                __wi,
-                __hi,
-                1.5))
-            __wt, __ht = __texture.size
-
-            # initiate
-            __current = __input
-            
-            # position the image inside the texture
-            __position = position_inside(
-                w1=__wi,
-                h1=__hi,
-                w2=__wt,
-                h2=__ht)
-
-            for i in range(30):
-                # filter the current iteration
-                __current = apply_scan_filter(
-                    image=__current,
-                    texture=__texture,
-                    position=__position,
-                    limit=8,
-                    opacity=0.8)
-
-                # save the current frame
-                __frames.append(__current)
-
-    merge_into_an_animation(__frames, '/home/flatline/test.gif')
+    merge_into_an_animation(
+        __frames,
+        '/home/flatline/test.gif',
+        200)
