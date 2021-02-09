@@ -102,6 +102,7 @@ def main():
 
     # retrieve and parse the argument values
     __args = __parser.parse_args()
+    __max_width = __args.width if __args.width >= 0 else 512
 
     # initiate
     __frames = []
@@ -112,7 +113,7 @@ def main():
                 image=__input,
                 texture=__texture,
                 iterations=__args.iterations,
-                size=(768, 768),
+                size=(__max_width, __max_width),
                 opacity=1.0,
                 noise=__args.noise,
                 sharpen=False,

@@ -233,12 +233,13 @@ def eat_image_away(
     -------
     out: None.
     """
-    # resize the input image, mosty for storage & processing opt.
-    image.thumbnail((768, 768), reducing_gap=3.0)
 
     # globals
-    __wi, __hi = image.size
+    __wi, __hi = size if size[0] > 0 and size[1] > 0 else image.size
     __frames = [image]
+
+    # resize the input image, mosty for storage & processing opt.
+    image.thumbnail((__wi, __hi), reducing_gap=3.0)
 
     # resize the texture to 1.5 x input, so that it wraps the input
     __texture = texture.resize(scale_wrapping_image(
