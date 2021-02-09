@@ -17,6 +17,7 @@ from typing import List, Tuple, Union
 from blend_modes import difference
 import numpy as np
 from PIL import Image as pil
+from PIL import ImageOps as ops
 from PIL import ImageFilter as fil
 from PIL.Image import Image
 
@@ -204,7 +205,7 @@ def apply_scan_filter(
         opacity=opacity)))
 
     # sharpen the result
-    return __filtered.filter(fil.SHARPEN)
+    return ops.invert(ops.invert(__filtered.convert('RGB')).filter(fil.MaxFilter(3))).convert('RGBA')
 
 #####################################################################
 # GENERATE THE ANIMATION
